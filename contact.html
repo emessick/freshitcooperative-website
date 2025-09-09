@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contact • Fresh IT Cooperative LLC (FITC)</title>
+  <meta name="description" content="Contact Fresh IT Cooperative for FITC Cloud RMS, Restaurant365 services, and Virtual IT." />
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/"><img src="/assets/img/Logo0.png" alt="FITC logo" class="brand-logo"> <span>Fresh IT Cooperative LLC</span></a>
+    <nav class="nav">
+      <a href="/">Home</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/privacy.html">Privacy</a>
+    </nav>
+  </header>
+
+  <main class="narrow">
+    <h1>Contact FITC</h1>
+    <p>Tell us about your restaurants, and we’ll match you with the right team.</p>
+
+    <!-- NOTE: For production submissions, connect to Microsoft Power Automate, Azure Functions, or Microsoft Forms.
+         The form below uses a 'mailto:' fallback for quick start. -->
+    <form class="form" action="mailto:info@freshitcooperative.com" method="post" enctype="text/plain">
+      <label>Full Name
+        <input type="text" name="name" required>
+      </label>
+      <label>Company
+        <input type="text" name="company">
+      </label>
+      <label>Email
+        <input type="email" name="email" required>
+      </label>
+      <label>Phone
+        <input type="tel" name="phone">
+      </label>
+      <label>How can we help?
+        <select name="topic">
+          <option value="fitc-cloud">FITC Cloud RMS</option>
+          <option value="r365">Restaurant365 services</option>
+          <option value="virtual-it">Virtual IT department</option>
+          <option value="executive-services">vCIO / vCTO / vCISO</option>
+          <option value="fresh-support">Fresh Support</option>
+          <option value="other">Other</option>
+        </select>
+      </label>
+      <label>Message
+        <textarea name="message" rows="6" required></textarea>
+      </label>
+      <button type="submit" class="btn primary">Send</button>
+    </form>
+
+    <section class="panel">
+      <h2>Other Ways to Reach Us</h2>
+      <p>Email: <a href="mailto:info@freshitcooperative.com">info@freshitcooperative.com</a></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <nav>
+        <a href="/terms.html">Terms</a>
+        <a href="/privacy.html">Privacy</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
