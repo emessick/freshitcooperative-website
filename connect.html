@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Connect • Fresh IT Cooperative LLC (FITC)</title>
+  <meta name="description" content="Connect or reconnect Fresh IT Cooperative's internal applications to authorized business systems." />
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="icon" href="/assets/img/Logo0.png" />
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/"><img src="/assets/img/Logo0.png" alt="FITC logo" class="brand-logo"> <span>Fresh IT Cooperative LLC</span></a>
+    <nav class="nav">
+      <a href="/">Home</a>
+      <a href="/internal-app.html">Internal App</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/terms.html">Terms</a>
+    </nav>
+  </header>
+
+  <main class="legal narrow">
+    <h1>Connect or Reconnect</h1>
+    <p><em>This page is part of FITC's internal application infrastructure. It is reached during authorization flows for connecting business systems on behalf of Fresh IT Cooperative LLC.</em></p>
+
+    <h2>What This Is</h2>
+    <p>FITC's internal Chief of Staff application connects to authorized business systems (QuickBooks Online, Microsoft 365, FreshDesk, Restaurant365, Ramp, banking, and others) using OAuth 2.0. When an FITC administrator initiates or renews a connection, this page is the public-facing endpoint referenced in our application registrations with each provider.</p>
+
+    <h2>Connecting</h2>
+    <p>Active OAuth flows for FITC's connected applications are completed by an authorized administrator using FITC-controlled credentials. The actual authorization callback is handled by an internal service running on FITC infrastructure; this page is informational and does not perform authentication itself.</p>
+
+    <h2>Reconnecting</h2>
+    <p>If a previous connection has been disconnected, expired, or the credentials have been rotated, an FITC administrator can re-initiate the OAuth flow through the relevant provider (e.g., for QuickBooks Online, via <a href="https://app.qbo.intuit.com/" target="_blank" rel="noopener">app.qbo.intuit.com</a>) with the same flow used for the initial connection.</p>
+
+    <h2>Need Help?</h2>
+    <p>This is an internal application. If you have reached this page in error, please return to <a href="/">our home page</a>. For administrative questions, email <a href="mailto:it@freshitcooperative.com">it@freshitcooperative.com</a>.</p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <nav>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/terms.html">Terms</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
