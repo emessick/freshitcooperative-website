@@ -8,6 +8,21 @@
   <meta name="robots" content="noindex,nofollow" />
   <link rel="icon" href="/assets/img/Logo0.png" />
   <link rel="stylesheet" href="/assets/css/styles.css" />
+  <style>
+    .oauth-panel { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 8px; padding: 1.25rem; margin: 1rem 0; }
+    .oauth-panel h2 { margin-top: 0; }
+    .oauth-panel.success { border-left: 4px solid #1a7f37; }
+    .oauth-panel.error   { border-left: 4px solid #cf222e; }
+    .oauth-row { display: flex; flex-direction: column; margin: 0.6rem 0; }
+    .oauth-row label { font-weight: 600; font-size: 0.85rem; color: #57606a; margin-bottom: 0.2rem; }
+    .oauth-row code  { background: #ffffff; border: 1px solid #d0d7de; border-radius: 4px; padding: 0.4rem 0.6rem; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.85rem; word-break: break-all; }
+    .oauth-row code.url { font-size: 0.75rem; color: #1a1a1a; }
+    .copy-btn { display: inline-block; margin-top: 0.3rem; padding: 0.35rem 0.75rem; background: #1f6feb; color: #ffffff; border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer; }
+    .copy-btn:hover { background: #1858c4; }
+    .copy-btn.copied { background: #1a7f37; }
+    .next-step { background: #fff8e1; border-left: 4px solid #d4a72c; padding: 0.8rem 1rem; margin-top: 1rem; border-radius: 4px; font-size: 0.95rem; }
+    .next-step strong { color: #594300; }
+  </style>
 </head>
 <body>
   <header class="site-header">
@@ -22,19 +37,24 @@
 
   <main class="legal narrow">
     <h1>Connect or Reconnect</h1>
-    <p><em>This page is part of FITC's internal application infrastructure. It is reached during authorization flows for connecting business systems on behalf of Fresh IT Cooperative LLC.</em></p>
 
-    <h2>What This Is</h2>
-    <p>FITC's internal Chief of Staff application connects to authorized business systems (QuickBooks Online, Microsoft 365, FreshDesk, Restaurant365, Ramp, banking, and others) using OAuth 2.0. When an FITC administrator initiates or renews a connection, this page is the public-facing endpoint referenced in our application registrations with each provider.</p>
+    <div id="oauth-callback" hidden></div>
 
-    <h2>Connecting</h2>
-    <p>Active OAuth flows for FITC's connected applications are completed by an authorized administrator using FITC-controlled credentials. The actual authorization callback is handled by an internal service running on FITC infrastructure; this page is informational and does not perform authentication itself.</p>
+    <div id="static-content">
+      <p><em>This page is part of FITC's internal application infrastructure. It is reached during authorization flows for connecting business systems on behalf of Fresh IT Cooperative LLC.</em></p>
 
-    <h2>Reconnecting</h2>
-    <p>If a previous connection has been disconnected, expired, or the credentials have been rotated, an FITC administrator can re-initiate the OAuth flow through the relevant provider (e.g., for QuickBooks Online, via <a href="https://app.qbo.intuit.com/" target="_blank" rel="noopener">app.qbo.intuit.com</a>) with the same flow used for the initial connection.</p>
+      <h2>What This Is</h2>
+      <p>FITC's internal Chief of Staff application connects to authorized business systems (QuickBooks Online, Microsoft 365, FreshDesk, Restaurant365, Ramp, banking, and others) using OAuth 2.0. When an FITC administrator initiates or renews a connection, this page is the public-facing endpoint referenced in our application registrations with each provider.</p>
 
-    <h2>Need Help?</h2>
-    <p>This is an internal application. If you have reached this page in error, please return to <a href="/">our home page</a>. For administrative questions, email <a href="mailto:it@freshitcooperative.com">it@freshitcooperative.com</a>.</p>
+      <h2>Connecting</h2>
+      <p>Active OAuth flows for FITC's connected applications are completed by an authorized administrator using FITC-controlled credentials. The actual authorization callback is handled by an internal service running on FITC infrastructure; this page is informational and does not perform authentication itself.</p>
+
+      <h2>Reconnecting</h2>
+      <p>If a previous connection has been disconnected, expired, or the credentials have been rotated, an FITC administrator can re-initiate the OAuth flow through the relevant provider (e.g., for QuickBooks Online, via <a href="https://app.qbo.intuit.com/" target="_blank" rel="noopener">app.qbo.intuit.com</a>) with the same flow used for the initial connection.</p>
+
+      <h2>Need Help?</h2>
+      <p>This is an internal application. If you have reached this page in error, please return to <a href="/">our home page</a>. For administrative questions, email <a href="mailto:it@freshitcooperative.com">it@freshitcooperative.com</a>.</p>
+    </div>
   </main>
 
   <footer class="site-footer">
@@ -46,5 +66,100 @@
       </nav>
     </div>
   </footer>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var code      = params.get("code");
+      var realmId   = params.get("realmId");
+      var state     = params.get("state");
+      var error     = params.get("error");
+      var errorDesc = params.get("error_description");
+
+      // No OAuth params: leave the static content visible.
+      if (!code && !error) return;
+
+      var staticEl = document.getElementById("static-content");
+      var panelEl  = document.getElementById("oauth-callback");
+      if (staticEl) staticEl.hidden = true;
+      if (!panelEl) return;
+      panelEl.hidden = false;
+
+      // Safe DOM builders. textContent only - no innerHTML.
+      function el(tag, attrs, children) {
+        var node = document.createElement(tag);
+        if (attrs) {
+          Object.keys(attrs).forEach(function (k) {
+            if (k === "className") node.className = attrs[k];
+            else if (k === "text") node.textContent = attrs[k];
+            else node.setAttribute(k, attrs[k]);
+          });
+        }
+        if (children) children.forEach(function (c) { if (c) node.appendChild(c); });
+        return node;
+      }
+      function row(labelText, valueText, urlMono) {
+        return el("div", { className: "oauth-row" }, [
+          el("label", { text: labelText }),
+          el("code", { className: urlMono ? "url" : "", text: String(valueText || "") }),
+        ]);
+      }
+
+      var panel;
+      if (error) {
+        panel = el("div", { className: "oauth-panel error" }, [
+          el("h2", { text: "Authorization failed" }),
+          el("p", { text: "The provider returned an error. Return to your terminal and start over." }),
+          row("error", error),
+          errorDesc ? row("description", errorDesc) : null,
+        ]);
+        panelEl.appendChild(panel);
+        return;
+      }
+
+      var fullUrl = window.location.href;
+
+      var copyBtn = el("button", {
+        type: "button",
+        className: "copy-btn",
+        id: "copy-url-btn",
+        text: "Copy URL",
+      });
+
+      var nextStep = el("div", { className: "next-step" });
+      nextStep.appendChild(el("strong", { text: "Next: " }));
+      nextStep.appendChild(document.createTextNode(
+        "close this tab once you have the values. The CLI will exchange the code for tokens, verify the connection, and write the result to your environment."
+      ));
+
+      panel = el("div", { className: "oauth-panel success" }, [
+        el("h2", { text: "Authorization received" }),
+        el("p", { text: "Copy the URL below and paste it into the terminal where the connect command is waiting." }),
+        row("Full callback URL (paste this into the CLI)", fullUrl, true),
+        copyBtn,
+        el("div", { style: "margin-top:1rem;font-size:0.9rem;color:#57606a;", text: "Or copy individual fields:" }),
+        row("realmId (QBO company id)", realmId),
+        row("code (single-use, expires in ~10 minutes)", code),
+        state ? row("state", state) : null,
+        nextStep,
+      ]);
+      panelEl.appendChild(panel);
+
+      copyBtn.addEventListener("click", function () {
+        if (!navigator.clipboard) {
+          copyBtn.textContent = "Copy not supported - select manually";
+          return;
+        }
+        navigator.clipboard.writeText(fullUrl).then(function () {
+          copyBtn.textContent = "Copied";
+          copyBtn.classList.add("copied");
+          setTimeout(function () {
+            copyBtn.textContent = "Copy URL";
+            copyBtn.classList.remove("copied");
+          }, 2000);
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
