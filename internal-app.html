@@ -8,6 +8,21 @@
   <meta name="robots" content="noindex,nofollow" />
   <link rel="icon" href="/assets/img/Logo0.png" />
   <link rel="stylesheet" href="/assets/css/styles.css" />
+  <style>
+    .oauth-panel { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 8px; padding: 1.25rem; margin: 1rem 0; }
+    .oauth-panel h2 { margin-top: 0; }
+    .oauth-panel.success { border-left: 4px solid #1a7f37; }
+    .oauth-panel.error   { border-left: 4px solid #cf222e; }
+    .oauth-row { display: flex; flex-direction: column; margin: 0.6rem 0; }
+    .oauth-row label { font-weight: 600; font-size: 0.85rem; color: #57606a; margin-bottom: 0.2rem; }
+    .oauth-row code  { background: #ffffff; border: 1px solid #d0d7de; border-radius: 4px; padding: 0.4rem 0.6rem; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.85rem; word-break: break-all; }
+    .oauth-row code.url { font-size: 0.75rem; color: #1a1a1a; }
+    .copy-btn { display: inline-block; margin-top: 0.3rem; padding: 0.35rem 0.75rem; background: #1f6feb; color: #ffffff; border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer; }
+    .copy-btn:hover { background: #1858c4; }
+    .copy-btn.copied { background: #1a7f37; }
+    .next-step { background: #fff8e1; border-left: 4px solid #d4a72c; padding: 0.8rem 1rem; margin-top: 1rem; border-radius: 4px; font-size: 0.95rem; }
+    .next-step strong { color: #594300; }
+  </style>
 </head>
 <body>
   <header class="site-header">
@@ -21,22 +36,27 @@
 
   <main class="legal narrow">
     <h1>Internal Application</h1>
-    <p><em>This page describes a private application used only by Fresh IT Cooperative LLC for the operation of its own business. It is not a public service.</em></p>
 
-    <h2>Scope</h2>
-    <p>The application referenced by this page is an internal Chief of Staff system used by FITC employees to coordinate operations across our own QuickBooks Online, Microsoft 365, FreshDesk, Restaurant365, Ramp, and related business systems. It accesses only company-owned accounts that have been explicitly authorized by FITC administrators.</p>
+    <div id="oauth-callback" hidden></div>
 
-    <h2>Who Can Use It</h2>
-    <p>Access is restricted to authenticated employees and authorized AI agents operating on behalf of Fresh IT Cooperative LLC and Fresh Support LLC. The application is not available to the general public, customers, or third parties.</p>
+    <div id="static-content">
+      <p><em>This page describes a private application used only by Fresh IT Cooperative LLC for the operation of its own business. It is not a public service.</em></p>
 
-    <h2>Data</h2>
-    <p>Data accessed by the application remains within FITC's own tenants and infrastructure. Authentication uses Microsoft Entra ID and OAuth 2.0 against FITC-controlled identities. The application reads accounting and operational data to support internal business workflows; it does not redistribute or sell any data to third parties.</p>
+      <h2>Scope</h2>
+      <p>The application referenced by this page is an internal Chief of Staff system used by FITC employees to coordinate operations across our own QuickBooks Online, Microsoft 365, FreshDesk, Restaurant365, Ramp, and related business systems. It accesses only company-owned accounts that have been explicitly authorized by FITC administrators.</p>
 
-    <h2>Connecting and Disconnecting</h2>
-    <p>FITC administrators authorize the application's access via standard OAuth 2.0 consent flows in each provider's developer or admin portal. Access can be revoked at any time by removing the application's authorization or rotating the relevant credentials. For QuickBooks Online specifically, authorization can be reviewed and revoked at <a href="https://app.qbo.intuit.com/app/connectedapps" target="_blank" rel="noopener">app.qbo.intuit.com/app/connectedapps</a>.</p>
+      <h2>Who Can Use It</h2>
+      <p>Access is restricted to authenticated employees and authorized AI agents operating on behalf of Fresh IT Cooperative LLC and Fresh Support LLC. The application is not available to the general public, customers, or third parties.</p>
 
-    <h2>Contact</h2>
-    <p>Questions about this internal application? Email <a href="mailto:it@freshitcooperative.com">it@freshitcooperative.com</a>.</p>
+      <h2>Data</h2>
+      <p>Data accessed by the application remains within FITC's own tenants and infrastructure. Authentication uses Microsoft Entra ID and OAuth 2.0 against FITC-controlled identities. The application reads accounting and operational data to support internal business workflows; it does not redistribute or sell any data to third parties.</p>
+
+      <h2>Connecting and Disconnecting</h2>
+      <p>FITC administrators authorize the application's access via standard OAuth 2.0 consent flows in each provider's developer or admin portal. Access can be revoked at any time by removing the application's authorization or rotating the relevant credentials. For QuickBooks Online specifically, authorization can be reviewed and revoked at <a href="https://app.qbo.intuit.com/app/connectedapps" target="_blank" rel="noopener">app.qbo.intuit.com/app/connectedapps</a>.</p>
+
+      <h2>Contact</h2>
+      <p>Questions about this internal application? Email <a href="mailto:it@freshitcooperative.com">it@freshitcooperative.com</a>.</p>
+    </div>
   </main>
 
   <footer class="site-footer">
@@ -48,5 +68,97 @@
       </nav>
     </div>
   </footer>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var code      = params.get("code");
+      var state     = params.get("state");
+      var error     = params.get("error");
+      var errorDesc = params.get("error_description");
+      var sessionState = params.get("session_state");
+
+      // No OAuth params: leave the static content visible.
+      if (!code && !error) return;
+
+      var staticEl = document.getElementById("static-content");
+      var panelEl  = document.getElementById("oauth-callback");
+      if (staticEl) staticEl.hidden = true;
+      if (!panelEl) return;
+      panelEl.hidden = false;
+
+      function el(tag, attrs, children) {
+        var node = document.createElement(tag);
+        if (attrs) {
+          Object.keys(attrs).forEach(function (k) {
+            if (k === "className") node.className = attrs[k];
+            else if (k === "text") node.textContent = attrs[k];
+            else node.setAttribute(k, attrs[k]);
+          });
+        }
+        if (children) children.forEach(function (c) { if (c) node.appendChild(c); });
+        return node;
+      }
+      function row(labelText, valueText, urlMono) {
+        return el("div", { className: "oauth-row" }, [
+          el("label", { text: labelText }),
+          el("code", { className: urlMono ? "url" : "", text: String(valueText || "") }),
+        ]);
+      }
+
+      if (error) {
+        panelEl.appendChild(el("div", { className: "oauth-panel error" }, [
+          el("h2", { text: "Sign-in failed" }),
+          el("p", { text: "The provider returned an error. Return to your terminal and start over." }),
+          row("error", error),
+          errorDesc ? row("description", errorDesc) : null,
+        ]));
+        return;
+      }
+
+      var fullUrl = window.location.href;
+
+      var copyBtn = el("button", {
+        type: "button",
+        className: "copy-btn",
+        id: "copy-url-btn",
+        text: "Copy URL",
+      });
+
+      var nextStep = el("div", { className: "next-step" });
+      nextStep.appendChild(el("strong", { text: "Next: " }));
+      nextStep.appendChild(document.createTextNode(
+        "close this tab once you have the URL. The CLI will exchange the code for tokens, verify the identity, and write the result to your environment."
+      ));
+
+      var panel = el("div", { className: "oauth-panel success" }, [
+        el("h2", { text: "Sign-in received" }),
+        el("p", { text: "Copy the URL below and paste it into the terminal where the connect command is waiting." }),
+        row("Full callback URL (paste this into the CLI)", fullUrl, true),
+        copyBtn,
+        el("div", { style: "margin-top:1rem;font-size:0.9rem;color:#57606a;", text: "Or copy individual fields:" }),
+        row("code (single-use, expires in ~10 minutes)", code),
+        state ? row("state", state) : null,
+        sessionState ? row("session_state", sessionState) : null,
+        nextStep,
+      ]);
+      panelEl.appendChild(panel);
+
+      copyBtn.addEventListener("click", function () {
+        if (!navigator.clipboard) {
+          copyBtn.textContent = "Copy not supported - select manually";
+          return;
+        }
+        navigator.clipboard.writeText(fullUrl).then(function () {
+          copyBtn.textContent = "Copied";
+          copyBtn.classList.add("copied");
+          setTimeout(function () {
+            copyBtn.textContent = "Copy URL";
+            copyBtn.classList.remove("copied");
+          }, 2000);
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
